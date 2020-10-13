@@ -174,8 +174,7 @@ export const HelpContainer = styled.div`
   align-self: flex-start;
   display: flex;
   flex-direction: column;
-  width: 30%;
-  border: 0.1rem solid #6c80ff;
+  width: 30%
   border-radius: 0.2rem;
   text-align: center;
   align-items: center;
