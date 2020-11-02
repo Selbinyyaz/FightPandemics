@@ -3,17 +3,20 @@ const { getSocketIdByUserId } = require("./socket");
 
 class Notifier {
   constructor(app) {
-    this.app = app
+    this.app = app;
     this.Notification = app.mongo.model("Notification");
     this.User = app.mongo.model("User");
   }
 
   async notify(action, post, triggeredById, sharedVia) {
-    if (!["like", "comment", "share"].includes(action)) return this.app.log.error(new Error('Invalid Notification action'));
+    if (!["like", "comment", "share"].includes(action))
+      return this.app.log.error(new Error("Invalid Notification action"));
     if (post.author.id.toString() == triggeredById.toString()) return; // user interacted with their own post
 
-    const [triggeredByErr, triggeredBy] = await this.app.to(this.User.findById(triggeredById));
-    if (triggeredByErr || !triggeredBy) return; 
+    const [triggeredByErr, triggeredBy] = await this.app.to(
+      this.User.findById(triggeredById),
+    );
+    if (triggeredByErr || !triggeredBy) return;
 
     const newNotification = {
       action: action,
@@ -23,7 +26,12 @@ class Notifier {
       },
       receiver: post.author.id,
       readAt: null,
-      emailSentAt: null,
+      emailSentAt: {
+        biweekly: null,
+        daily: null,
+        instant: null,
+        weekly: null,
+      },
       sharedVia: sharedVia,
       triggeredBy: {
         id: triggeredBy._id,
@@ -33,12 +41,20 @@ class Notifier {
       },
     };
 
-    const [err, notification] = await this.app.to(new this.Notification(newNotification).save());
-    if (err) return this.app.log.error(err, 'Failed saving new Notification');
+    const [err, notification] = await this.app.to(
+      new this.Notification(newNotification).save(),
+    );
+    if (err) return this.app.log.error(err, "Failed saving new Notification");
 
     // send real-time web notification if online
-    let userIsOnline = await getSocketIdByUserId(this.app, post.author.id.toString())
-    if (userIsOnline) this.app.io.to(post.author.id.toString()).emit('NEW_NOTIFICATION', notification);
+    let userIsOnline = await getSocketIdByUserId(
+      this.app,
+      post.author.id.toString(),
+    );
+    if (userIsOnline)
+      this.app.io
+        .to(post.author.id.toString())
+        .emit("NEW_NOTIFICATION", notification);
   }
 }
 
