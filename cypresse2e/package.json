@@ -8,6 +8,7 @@
   "private": true,
   "devDependencies": {
     "cypress": "^4.9.0",
+    "cypress-failed-log": "^2.7.0 ",
     "cypress-xpath": "^1.6.0",
     "husky": "^4.3.0",
     "prettier": "^2.1.2",
